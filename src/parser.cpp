@@ -31,7 +31,6 @@ NodePtr buildAST(std::vector<token_t>& tokens, NodePtr ast) {
   }
 }
 
-// CLEANME
 NodePtr parseQuote(NodePtr ast) {
   std::shared_ptr<Expression> parent = std::dynamic_pointer_cast<Expression>(ast);
   if (parent) {
@@ -39,7 +38,7 @@ NodePtr parseQuote(NodePtr ast) {
       NodePtr& child = parent->children[i];
       if (child->getClassName() == "expression") {
         parseQuote(child);
-      } else if (child->getClassName() == "literal") {
+      } else if (child->getClassName() == "identifier_literal") {
         std::shared_ptr<Literal> literalChild = std::dynamic_pointer_cast<Literal>(child);
         if (literalChild->getValue() == "'" && literalChild->getType() == "identifier") {
           literalChild->setValue("quote");
