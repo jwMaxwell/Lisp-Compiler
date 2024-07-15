@@ -5,7 +5,7 @@ CXX = g++
 CXXFLAGS = -std=c++20 -Wall
 
 # Executable name
-EXEC = driver
+EXEC = driver.exe
 
 # Source files
 SRCS = src/driver.cpp src/tokenizer.cpp src/parser.cpp
