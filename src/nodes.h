@@ -8,10 +8,10 @@
 #include "tokenizer.h"
 
 class Node {
-  protected:
+protected:
   std::string className;
 
-  public:
+public:
   virtual ~Node() = default;
   virtual std::string getClassName() const {
     return className;
@@ -20,11 +20,10 @@ class Node {
 };
 
 using NodePtr = std::shared_ptr<Node>;
-
 class Expression : public Node {
-  public:
+public:
   std::vector<NodePtr> children;
-  
+
   Expression() {
     className = "expression";
   }
@@ -43,11 +42,36 @@ class Expression : public Node {
 };
 
 class Literal : public Node {
-  public:
-  token_t token;
+protected:
+  std::string value;
+  std::string type;
+  size_t line;
+  size_t column;
 
-  Literal(const token_t& tok) : token(tok) {
+public:
+  Literal(const token_t& tok)
+    : value(tok.value), type(tok.type), line(tok.line), column(tok.column) {
     className = "literal";
+  }
+
+  const void setValue(std::string _value) {
+    value = _value;
+  }
+
+  const std::string getValue() const {
+    return value;
+  }
+
+  const std::string getType() const {
+    return type;
+  }
+
+  size_t getLine() const {
+    return line;
+  }
+
+  size_t getColumn() const {
+    return column;
   }
 
   std::string getClassName() const override {
@@ -56,7 +80,44 @@ class Literal : public Node {
 
   void print(int indent = 0) const override {
     std::string indentation(indent, ' ');
-    std::cout << indentation << "Literal: " << token.value << std::endl;
+    std::cout << indentation << "Literal: " << value << " (Type: " << type
+              << ", Line: " << line << ", Column: " << column << ")" << std::endl;
+  }
+};
+
+class StringLiteral : public Literal {
+public:
+  StringLiteral(const token_t& tok) : Literal(tok) {
+    className = "string_literal";
+  }
+
+  void print(int indent = 0) const override {
+    std::string indentation(indent, ' ');
+    std::cout << indentation << "StringLiteral: \"" << value << "\"" << std::endl;
+  }
+};
+
+class NumericLiteral : public Literal {
+public:
+  NumericLiteral(const token_t& tok) : Literal(tok) {
+    className = "numeric_literal";
+  }
+
+  void print(int indent = 0) const override {
+    std::string indentation(indent, ' ');
+    std::cout << indentation << "NumericLiteral: " << value << std::endl;
+  }
+};
+
+class IdentifierLiteral : public Literal {
+public:
+  IdentifierLiteral(const token_t& tok) : Literal(tok) {
+    className = "identifier_literal";
+  }
+
+  void print(int indent = 0) const override {
+    std::string indentation(indent, ' ');
+    std::cout << indentation << "IdentifierLiteral: " << value << std::endl;
   }
 };
 
