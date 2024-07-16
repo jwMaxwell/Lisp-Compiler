@@ -15,7 +15,6 @@ NodePtr buildAST(std::vector<token_t>& tokens, NodePtr ast) {
     return ast;
   } else {
     // omg LITERALly parsing
-    //NodePtr newLiteral = std::make_shared<Literal>(token);
     NodePtr newLiteral;
     if (token.type == "number")
       newLiteral = std::make_shared<NumericLiteral>(token);

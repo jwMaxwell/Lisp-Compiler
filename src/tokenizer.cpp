@@ -1,6 +1,6 @@
 #include "tokenizer.h"
 
-std::vector<token_t> tokenize(const std::string& text) {
+std::vector<token_t> generateTokens(const std::string& text) {
   std::vector<token_t> matches;
   std::regex regexPattern(R"(;.*?\n|\(|\)|"[^"]*"|'|[^\s()]+)");
   auto words_begin = std::sregex_iterator(text.begin(), text.end(), regexPattern);
@@ -42,4 +42,43 @@ std::vector<token_t> tokenize(const std::string& text) {
   }
 
   return matches;
+}
+
+bool checkTokens(std::vector<token_t>& tokens) {
+  std::vector<token_t> parens;
+  for (token_t token : tokens) {
+    if (token.type == "symbol" && token.value == "(")
+      parens.push_back(token);
+    else if (token.type == "symbol" && token.value == ")" && parens.size() > 0)
+      parens.pop_back();
+    else if (token.type == "symbol" && token.value == ")") {
+      std::cerr << "Error: Unexpected token \"" 
+        << token.value 
+        << "\" at " 
+        << token.line 
+        << ":" 
+        << token.column 
+        << std::endl;
+      return false;
+    }
+  }
+  if (parens.size() > 0) {
+    token_t token = parens[0];
+    std::cerr << "Error: Missing terminating \")\" character for \""
+      << token.value
+      << "\" at "
+      << token.line 
+      << ":"
+      << token.column
+      << std::endl;
+    return false;
+  }
+  return true;
+}
+
+std::vector<token_t> tokenize(const std::string& text) {
+  std::vector<token_t> tokens = generateTokens(text);
+  if (checkTokens(tokens))
+    return tokens;
+  return {};
 }
