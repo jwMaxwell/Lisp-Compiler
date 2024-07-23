@@ -7,5 +7,6 @@
 
 NodePtr buildAST(std::vector<token_t>& tokens, NodePtr ast = std::make_shared<Expression>());
 NodePtr parseQuote(NodePtr ast);
+NodePtr parse(std::vector<token_t>& tokens);
 
 #endif // PARSER_H

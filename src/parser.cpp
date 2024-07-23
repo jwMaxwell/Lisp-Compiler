@@ -55,3 +55,8 @@ NodePtr parseQuote(NodePtr ast) {
   return ast;
 }
 
+NodePtr parse(std::vector<token_t>& tokens) {
+	NodePtr ast = buildAST(tokens);
+	ast = parseQuote(ast);
+	return ast;
+}
