@@ -24,7 +24,7 @@ public:
     return className;
   }
   virtual void print(int indent = 0) const = 0;
-	// virtual llvm::Value* codegen() = 0;
+	virtual llvm::Value* codegen() = 0;
 };
 
 class Literal : public Node {
@@ -70,7 +70,8 @@ public:
               << ", Line: " << line << ", Column: " << column << ")" << std::endl;
   }
 
-	llvm::Value* codegen() {
+	llvm::Value* codegen() override {
+		LogDebug("Literal->codegen()");
 		return nullptr;
 	}
 };
@@ -86,7 +87,8 @@ public:
     std::cout << indentation << "StringLiteral: \"" << value << "\"" << std::endl;
   }
 
-	llvm::Value* codegen() {
+	llvm::Value* codegen() override {
+		LogDebug("StringLiteral->codegen()");
 		return nullptr;
 	}
 };
@@ -102,8 +104,9 @@ public:
     std::cout << indentation << "NumericLiteral: " << value << std::endl;
   }
 
-	llvm::Value* codegen() {
-		// return nullptr;
+	llvm::Value* codegen() override {
+		LogDebug("NumericLiteral->codegen()");
+		print(1);
 	  return llvm::ConstantFP::get(TheContext, llvm::APFloat(std::stod(value)));
 	}
 };
@@ -119,8 +122,13 @@ public:
     std::cout << indentation << "IdentifierLiteral: " << value << std::endl;
   }
 
-	llvm::Value* codegen() {
-		return nullptr;
+	llvm::Value* codegen() override {
+		LogDebug("IdentifierLiteral->codegen()");
+		if (value == "+")
+			return addFn;
+		else if (value == "-")
+			return subFn;
+		return LogErrorF("identifier does not map to any given function");
 	}
 };
 
@@ -145,34 +153,61 @@ public:
     }
   }
 
-	llvm::Value* codegen() {
-		std::cout << "DEBUG: Beginning Expression->codegen\n";
-		std::string fnName =
-			std::dynamic_pointer_cast<IdentifierLiteral>(children.at(0))->getValue();
+	llvm::Value* codegen() override {
+		LogDebug("Expression->codegen()");
 
-		if (fnName == "+") {
-			LogDebug("creating addition fn");
-			llvm::Value* var1 = std::dynamic_pointer_cast<NumericLiteral>(children.at(1))->codegen();
-			llvm::Value* var2 = std::dynamic_pointer_cast<NumericLiteral>(children.at(2))->codegen();
-
-			return createCallFunction(addFn, var1, var2);
+		if (children.empty()) {
+			return LogErrorV("infertile expression");
 		}
-		return nullptr;
+
+		llvm::Value* fn = children.at(0)->codegen();
+		if (!fn) {
+			return LogErrorV("invalid function");
+		}
+
+		std::vector<llvm::Value*> args;
+		for (size_t i = 1; i < children.size(); ++i) {
+			llvm::Value* arg = children.at(i)->codegen();
+			if (!arg) {
+				return LogErrorV("invalid argument");
+			}
+			args.push_back(arg);
+		}
+
+		if (llvm::Function* func = llvm::dyn_cast<llvm::Function>(fn)) {
+        return Builder.CreateCall(func, args, "callresult");
+    } else {
+			return LogErrorV("invalid function");
+		}
 	}
 };
 
-class MainBody : public Expression {
+class ExpressionContainer : public Node {
 public:
-	MainBody(Expression e) {
-		className = "MainBody";
-		children = e.children;
+	std::vector<NodePtr> children;
+	ExpressionContainer() {
+		className = "ExpressionContainer";
 	}
-	
-	llvm::Value* codegen() {
-		for (NodePtr n : children) {
-			// n->codegen();
+
+	void print(int indent = 0) const override {
+		std::string indentation(indent, ' ');
+		std::cout << indentation << "ExpressionContainer" << std::endl;
+		for (const auto& expr : children) {
+			expr->print(indent + 2);
 		}
-		return nullptr;
+	}
+
+	llvm::Value* codegen() override {
+		LogDebug("MainExpression->codegen()");
+
+		llvm::Value* lastValue = nullptr;
+		for (const auto& expr : children) {
+			lastValue = expr->codegen();
+			if (!lastValue) {
+				return LogErrorV("Failed to generate code for an expression in the sequence");
+			}
+		}
+		return lastValue;
 	}
 };
 

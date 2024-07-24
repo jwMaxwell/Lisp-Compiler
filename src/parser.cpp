@@ -58,5 +58,10 @@ NodePtr parseQuote(NodePtr ast) {
 NodePtr parse(std::vector<token_t>& tokens) {
 	NodePtr ast = buildAST(tokens);
 	ast = parseQuote(ast);
-	return ast;
+
+	auto container = std::make_shared<ExpressionContainer>();
+	container->children = 
+		std::dynamic_pointer_cast<Expression>(ast)->children;
+
+	return container;
 }

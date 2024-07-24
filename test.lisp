@@ -6,4 +6,5 @@
 ;; (print (rfold + 0 '(5 4 3 2 1)))
 ;; (print ("This is a string"))
 
-+ 3 4
+(+ (+ 5 2) 4)
+;; + 4 2

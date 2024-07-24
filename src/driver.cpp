@@ -50,7 +50,8 @@ int main(int argc, char** argv) {
 	std::cout << "============= LLVM IR ==============" << std::endl;
 	initLLVM();
 	initFunctions(TheModule.get(), TheContext);
-	llvm::Value* ir_code = std::dynamic_pointer_cast<Expression>(ast)->codegen();
+	LogDebug("functions intialized... starting codegen");
+	llvm::Value* ir_code = std::dynamic_pointer_cast<ExpressionContainer>(ast)->codegen();
 	ir_code->getName(); // gets rid of the warning
 	// TheModule->print(llvm::outs(), nullptr);
 	TheModule->print(llvm::errs(), nullptr);
