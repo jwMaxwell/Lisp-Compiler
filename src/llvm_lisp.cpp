@@ -1,28 +1,28 @@
 #include "llvm_lisp.h"
 
-llvm::LLVMContext TheContext;
-llvm::IRBuilder<> Builder(TheContext);
-std::unique_ptr<llvm::Module> TheModule;
-std::map<std::string, llvm::Value *> NamedValues;
+llvm::LLVMContext the_context;
+llvm::IRBuilder<> the_builder(the_context);
+std::unique_ptr<llvm::Module> the_module;
+std::map<std::string, llvm::Value *> named_values;
 
-void LogDebug(std::string stmt) {
+void log_debug(std::string stmt) {
 	std::cout << "Debug: " << stmt << std::endl;
 }
 
-void LogError(std::string error) {
+void log_error(std::string error) {
 	std::cerr << "Error: " << error << std::endl;
 }
 
-llvm::Value* LogErrorV(const char *str) {
-	LogError(str);
+llvm::Value* log_error_v(const char *str) {
+	log_error(str);
   return nullptr;
 }
 
-llvm::Function* LogErrorF(const char *str) {
-	LogError(str);
+llvm::Function* log_error_f(const char *str) {
+	log_error(str);
 	return nullptr;
 }
 
-void initLLVM() {
-	TheModule = std::make_unique<llvm::Module>("JIT", TheContext);
+void init_llvm() {
+	the_module = std::make_unique<llvm::Module>("JIT", the_context);
 }

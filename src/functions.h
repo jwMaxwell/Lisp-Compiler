@@ -8,12 +8,12 @@
 #include <llvm/IR/Verifier.h>
 #include "nodes.h"
 
-llvm::Function* initAddFunction(llvm::Module* module, llvm::LLVMContext& context);
-llvm::Function* initSubFunction(llvm::Module* module, llvm::LLVMContext& context);
-llvm::Value* createCallFunction(llvm::Function* targetFunction, llvm::Value* arg1, llvm::Value* arg2);
-void initFunctions(llvm::Module* module, llvm::LLVMContext& context);
+llvm::Function* init_add_fn(llvm::Module* module, llvm::LLVMContext& context);
+llvm::Function* init_sub_fn(llvm::Module* module, llvm::LLVMContext& context);
+llvm::Value* call_function(llvm::Function* target_function, llvm::Value* arg1, llvm::Value* arg2);
+void init_functions(llvm::Module* module, llvm::LLVMContext& context);
 
-extern llvm::Function* addFn;
-extern llvm::Function* subFn;
+extern llvm::Function* add_fn;
+extern llvm::Function* sub_fn;
 
 #endif // FUNCTIONS_H

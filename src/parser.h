@@ -5,8 +5,8 @@
 #include "nodes.h"
 #include "tokenizer.h"
 
-NodePtr buildAST(std::vector<token_t>& tokens, NodePtr ast = std::make_shared<Expression>());
-NodePtr parseQuote(NodePtr ast);
-NodePtr parse(std::vector<token_t>& tokens);
+node_ptr build_AST(std::vector<token_t>& tokens, node_ptr ast = std::make_shared<Expression>());
+node_ptr parse_quote(node_ptr ast);
+node_ptr parse(std::vector<token_t>& tokens);
 
 #endif // PARSER_H

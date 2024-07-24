@@ -16,12 +16,12 @@
 
 class Node {
 protected:
-  std::string className;
+  std::string class_name;
 
 public:
   virtual ~Node() = default;
-  virtual std::string getClassName() const {
-    return className;
+  virtual std::string get_class_name() const {
+    return class_name;
   }
   virtual void print(int indent = 0) const = 0;
 	virtual llvm::Value* codegen() = 0;
@@ -37,31 +37,31 @@ protected:
 public:
   Literal(const token_t& tok)
     : value(tok.value), type(tok.type), line(tok.line), column(tok.column) {
-    className = "literal";
+    class_name = "literal";
   }
 
-  void setValue(std::string _value) {
+  void set_value(std::string _value) {
     value = _value;
   }
 
-  const std::string getValue() const {
+  const std::string get_value() const {
     return value;
   }
 
-  const std::string getType() const {
+  const std::string get_type() const {
     return type;
   }
 
-  size_t getLine() const {
+  size_t get_line() const {
     return line;
   }
 
-  size_t getColumn() const {
+  size_t get_column() const {
     return column;
   }
 
-  std::string getClassName() const override {
-    return className;
+  std::string get_class_name() const override {
+    return class_name;
   }
 
   void print(int indent = 0) const override {
@@ -71,78 +71,78 @@ public:
   }
 
 	llvm::Value* codegen() override {
-		LogDebug("Literal->codegen()");
+		log_debug("Literal->codegen()");
 		return nullptr;
 	}
 };
 
-class StringLiteral : public Literal {
+class String_Literal : public Literal {
 public:
-  StringLiteral(const token_t& tok) : Literal(tok) {
-    className = "string_literal";
+  String_Literal(const token_t& tok) : Literal(tok) {
+    class_name = "string_literal";
   }
 
   void print(int indent = 0) const override {
     std::string indentation(indent, ' ');
-    std::cout << indentation << "StringLiteral: \"" << value << "\"" << std::endl;
+    std::cout << indentation << "String_Literal: \"" << value << "\"" << std::endl;
   }
 
 	llvm::Value* codegen() override {
-		LogDebug("StringLiteral->codegen()");
+		log_debug("String_Literal->codegen()");
 		return nullptr;
 	}
 };
 
-class NumericLiteral : public Literal {
+class Numeric_Literal : public Literal {
 public:
-  NumericLiteral(const token_t& tok) : Literal(tok) {
-    className = "numeric_literal";
+  Numeric_Literal(const token_t& tok) : Literal(tok) {
+    class_name = "numeric_literal";
   }
 
   void print(int indent = 0) const override {
     std::string indentation(indent, ' ');
-    std::cout << indentation << "NumericLiteral: " << value << std::endl;
+    std::cout << indentation << "Numeric_Literal: " << value << std::endl;
   }
 
 	llvm::Value* codegen() override {
-		LogDebug("NumericLiteral->codegen()");
+		log_debug("Numeric_Literal->codegen()");
 		print(1);
-	  return llvm::ConstantFP::get(TheContext, llvm::APFloat(std::stod(value)));
+	  return llvm::ConstantFP::get(the_context, llvm::APFloat(std::stod(value)));
 	}
 };
 
-class IdentifierLiteral : public Literal {
+class Identifier_Literal : public Literal {
 public:
-  IdentifierLiteral(const token_t& tok) : Literal(tok) {
-    className = "identifier_literal";
+  Identifier_Literal(const token_t& tok) : Literal(tok) {
+    class_name = "identifier_literal";
   }
 
   void print(int indent = 0) const override {
     std::string indentation(indent, ' ');
-    std::cout << indentation << "IdentifierLiteral: " << value << std::endl;
+    std::cout << indentation << "Identifier_Literal: " << value << std::endl;
   }
 
 	llvm::Value* codegen() override {
-		LogDebug("IdentifierLiteral->codegen()");
+		log_debug("Identifier_Literal->codegen()");
 		if (value == "+")
-			return addFn;
+			return add_fn;
 		else if (value == "-")
-			return subFn;
-		return LogErrorF("identifier does not map to any given function");
+			return sub_fn;
+		return log_error_f("identifier does not map to any given function");
 	}
 };
 
-using NodePtr = std::shared_ptr<Node>;
+using node_ptr = std::shared_ptr<Node>;
 class Expression : public Node {
 public:
-  std::vector<NodePtr> children;
+  std::vector<node_ptr> children;
 
   Expression() {
-    className = "expression";
+    class_name = "expression";
   }
 
-  std::string getClassName() const override {
-    return className;
+  std::string get_class_name() const override {
+    return class_name;
   }
 
   void print(int indent = 0) const override {
@@ -154,57 +154,57 @@ public:
   }
 
 	llvm::Value* codegen() override {
-		LogDebug("Expression->codegen()");
+		log_debug("Expression->codegen()");
 
 		if (children.empty()) {
-			return LogErrorV("infertile expression");
+			return log_error_v("infertile expression");
 		}
 
 		llvm::Value* fn = children.at(0)->codegen();
 		if (!fn) {
-			return LogErrorV("invalid function");
+			return log_error_v("invalid function");
 		}
 
 		std::vector<llvm::Value*> args;
 		for (size_t i = 1; i < children.size(); ++i) {
 			llvm::Value* arg = children.at(i)->codegen();
 			if (!arg) {
-				return LogErrorV("invalid argument");
+				return log_error_v("invalid argument");
 			}
 			args.push_back(arg);
 		}
 
 		if (llvm::Function* func = llvm::dyn_cast<llvm::Function>(fn)) {
-        return Builder.CreateCall(func, args, "callresult");
+        return the_builder.CreateCall(func, args, "callresult");
     } else {
-			return LogErrorV("invalid function");
+			return log_error_v("invalid function");
 		}
 	}
 };
 
-class ExpressionContainer : public Node {
+class Expression_Container : public Node {
 public:
-	std::vector<NodePtr> children;
-	ExpressionContainer() {
-		className = "ExpressionContainer";
+	std::vector<node_ptr> children;
+	Expression_Container() {
+		class_name = "Expression_Container";
 	}
 
 	void print(int indent = 0) const override {
 		std::string indentation(indent, ' ');
-		std::cout << indentation << "ExpressionContainer" << std::endl;
+		std::cout << indentation << "Expression_Container" << std::endl;
 		for (const auto& expr : children) {
 			expr->print(indent + 2);
 		}
 	}
 
 	llvm::Value* codegen() override {
-		LogDebug("MainExpression->codegen()");
+		log_debug("MainExpression->codegen()");
 
 		llvm::Value* lastValue = nullptr;
 		for (const auto& expr : children) {
 			lastValue = expr->codegen();
 			if (!lastValue) {
-				return LogErrorV("Failed to generate code for an expression in the sequence");
+				return log_error_v("Failed to generate code for an expression in the sequence");
 			}
 		}
 		return lastValue;

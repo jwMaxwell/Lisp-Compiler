@@ -12,10 +12,8 @@
 
 #include "functions.h"
 
-enum operation {ADDF, SUBF, MULF};
-
-llvm::Function* initAddFunction(llvm::Module* module, llvm::LLVMContext& context) {
-	LogDebug("initAddFunction");
+llvm::Function* init_add_fn(llvm::Module* module, llvm::LLVMContext& context) {
+	log_debug("init_add_fn");
 	// Check if module is nullptr
 	if (!module) {
 		std::cerr << "ERROR: module is nullptr\n";
@@ -59,10 +57,10 @@ llvm::Function* initAddFunction(llvm::Module* module, llvm::LLVMContext& context
 	return addFunction;
 }
 
-llvm::Function* initSubFunction(llvm::Module* module, llvm::LLVMContext& context) {
-	LogDebug("initSubFunction");
+llvm::Function* init_sub_fn(llvm::Module* module, llvm::LLVMContext& context) {
+	log_debug("init_sub_fn");
 	if (!module) {
-		return LogErrorF("module is nullptr");
+		return log_error_f("module is nullptr");
 	}
     
 	llvm::FunctionType* funcType =
@@ -96,17 +94,17 @@ llvm::Function* initSubFunction(llvm::Module* module, llvm::LLVMContext& context
 	return subFunction;
 }
 
-llvm::Value* createCallFunction(llvm::Function* targetFunction, llvm::Value* arg1, llvm::Value* arg2) {
-	LogDebug("createCallFunction");
-	llvm::Value* result = Builder.CreateCall(targetFunction, {arg1, arg2}, "callresult");
+llvm::Value* call_function(llvm::Function* targetFunction, llvm::Value* arg1, llvm::Value* arg2) {
+	log_debug("call_function");
+	llvm::Value* result = the_builder.CreateCall(targetFunction, {arg1, arg2}, "callresult");
 	return result;
 }
 
-llvm::Function* addFn = nullptr;
-llvm::Function* subFn = nullptr;
+llvm::Function* add_fn = nullptr;
+llvm::Function* sub_fn = nullptr;
 
-void initFunctions(llvm::Module* module, llvm::LLVMContext& context) {
-	LogDebug("initFunctions");
-	addFn = initAddFunction(module, context);
-	subFn = initSubFunction(module, context);
+void init_functions(llvm::Module* module, llvm::LLVMContext& context) {
+	log_debug("init_functions");
+	add_fn = init_add_fn(module, context);
+	sub_fn = init_sub_fn(module, context);
 }
