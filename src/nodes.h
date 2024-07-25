@@ -128,6 +128,10 @@ public:
 			return add_fn;
 		else if (value == "-")
 			return sub_fn;
+		else if (value == "*")
+			return mul_fn;
+		else if (value == "/")
+			return div_fn;
 		return log_error_f("identifier does not map to any given function");
 	}
 };

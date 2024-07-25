@@ -15,5 +15,7 @@ void init_functions(llvm::Module* module, llvm::LLVMContext& context);
 
 extern llvm::Function* add_fn;
 extern llvm::Function* sub_fn;
+extern llvm::Function* mul_fn;
+extern llvm::Function* div_fn;
 
 #endif // FUNCTIONS_H
