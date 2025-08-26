@@ -6,5 +6,5 @@
 ;; (print (rfold + 0 '(5 4 3 2 1)))
 ;; (print ("This is a string"))
 
-(+ (- 5 2) 4)
-;; + 4 2
+(printf "%f\n" (+ (- 5 2) 4))
+(printf "%f\n" (+ (- 5 3) 4))
