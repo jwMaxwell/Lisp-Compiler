@@ -31,7 +31,7 @@ void init_runtime_ir(llvm::Module *M, llvm::LLVMContext &C) {
   runtime_ir.cons = decl(M, "cons", I8Ptr, {I8Ptr, I8Ptr});
   runtime_ir.car = decl(M, "car", I8Ptr, {I8Ptr});
   runtime_ir.cdr = decl(M, "cdr", I8Ptr, {I8Ptr});
-  runtime_ir.is_atom = decl(M, "is_atom", I32, {I8Ptr});
-  runtime_ir.eq = decl(M, "eq", I32, {I8Ptr, I8Ptr});
+  runtime_ir.is_atom = decl(M, "is_atom", I8Ptr, {I8Ptr});
+  runtime_ir.eq = decl(M, "eq", I8Ptr, {I8Ptr, I8Ptr});
   runtime_ir.print_value = decl(M, "print_value", Void, {I8Ptr});
 }

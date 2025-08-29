@@ -107,6 +107,29 @@ public:
   }
 };
 
+class Boolean_Literal : public Literal {
+public:
+  Boolean_Literal(const token_t &tok) : Literal(tok) {
+    class_name = "boolen_literal";
+  }
+
+  void print(int indent = 0) const override {
+    std::string indentation(indent, ' ');
+    std::cout << indentation << "Boolean_Literal: " << value << std::endl;
+  }
+
+  llvm::Value *codegen() override {
+    log_debug("Boolean_Literal->codegen()");
+    print(1);
+
+    int temp = value == "true" ? 1 : 0;
+    log_debug("Boolean_Literal->codegen()");
+    auto val =
+        llvm::ConstantInt::get(llvm::Type::getInt32Ty(the_context), temp);
+    return the_builder.CreateCall(runtime_ir.bool_handle, {val}, "boolobj");
+  }
+};
+
 class Identifier_Literal : public Literal {
 public:
   Identifier_Literal(const token_t &tok) : Literal(tok) {
@@ -136,10 +159,10 @@ public:
       return runtime_ir.car;
     else if (value == "cdr")
       return runtime_ir.cdr;
-    // else if (value == "atom?")
-    //   return runtime_ir.is_atom;
-    // else if (value == "eq?")
-    //   return runtime_ir.eq;
+    else if (value == "atom?")
+      return runtime_ir.is_atom;
+    else if (value == "eq?")
+      return runtime_ir.eq;
 
     std::string error = "identifier does not map to any given function: ";
     error += value;

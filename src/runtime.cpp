@@ -23,7 +23,12 @@ Value *make_nil() {
   return NIL;
 }
 
-Value *make_bool(int b) { return mkval(T_BOOL, (void *)(intptr_t)b); }
+// Value *make_bool(int b) { return mkval(T_BOOL, (void *)(intptr_t)b); }
+Value *make_bool(int b) {
+  int *p = (int *)std::malloc(sizeof(int));
+  *p = b;
+  return mkval(T_BOOL, p);
+}
 
 Value *make_number(double x) {
   double *p = (double *)std::malloc(sizeof(double));
@@ -75,13 +80,36 @@ Value *cdr(Value *v) {
   return c->cdr;
 }
 
-int is_atom(Value *v) {
+Value *is_atom(Value *v) {
   if (!v)
-    return 1;
-  return v->tag != T_CONS;
+    return make_bool(1);
+  return make_bool(v->tag != T_CONS);
 }
 
-int eq(Value *a, Value *b) { return a == b; }
+Value *eq(Value *a, Value *b) {
+  if (a->tag != b->tag)
+    return make_bool(0);
+
+  if (!a && !b) {
+    return make_bool(1);
+  } else if (!a || !b) {
+    return make_bool(0);
+  }
+
+  switch (a->tag) {
+  case T_NIL:
+    return make_bool(1);
+  case T_NUMBER:
+    return make_bool(*(double *)a->payload == *(double *)b->payload);
+  case T_STRING:
+  case T_SYMBOL:
+    return make_bool(std::string((char *)a->payload) ==
+                     std::string((char *)b->payload));
+  case T_BOOL:
+    return make_bool(*(int *)a->payload == *(int *)b->payload);
+  }
+  return make_bool(0);
+}
 
 void print_value(Value *v) {
   if (!v) {
@@ -102,7 +130,7 @@ void print_value(Value *v) {
     printf("%s", (char *)v->payload);
     break;
   case T_BOOL:
-    printf("%s", (v->payload ? "true" : "false"));
+    printf("%s", *(int *)v->payload ? "true" : "false");
     break;
   case T_CONS: {
     printf("(");

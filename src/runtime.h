@@ -29,8 +29,9 @@ Cons *make_cons(Value *car, Value *cdr);
 Value *cons(Value *car, Value *cdr); // returns Value* wrapper for Cons
 Value *car(Value *v);
 Value *cdr(Value *v);
-int is_atom(Value *v);
-int eq(Value *a, Value *b);
+Value *is_atom(Value *v);
+Value *eq(Value *a, Value *b);
+
 void print_value(Value *v); // convenience, prints readable form
 }
 
