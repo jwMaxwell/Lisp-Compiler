@@ -13,6 +13,6 @@ extern llvm::Function *add_fn;
 extern llvm::Function *sub_fn;
 extern llvm::Function *mul_fn;
 extern llvm::Function *div_fn;
-extern llvm::Function *printf_fn;
+extern llvm::Function *print_fn;
 
 #endif // FUNCTIONS_H

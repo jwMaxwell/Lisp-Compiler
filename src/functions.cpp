@@ -13,6 +13,12 @@
 
 #include "functions.h"
 
+llvm::Function *add_fn = nullptr;
+llvm::Function *sub_fn = nullptr;
+llvm::Function *mul_fn = nullptr;
+llvm::Function *div_fn = nullptr;
+llvm::Function *print_fn = nullptr;
+
 llvm::Function *bin_math_fn(llvm::Module *module, llvm::LLVMContext &context,
                             std::string fn_name) {
     log_debug("bin_math_fn");
@@ -57,27 +63,21 @@ llvm::Function *bin_math_fn(llvm::Module *module, llvm::LLVMContext &context,
     return math_function;
 }
 
-llvm::Function *init_printf_fn(llvm::Module *module,
-                               llvm::LLVMContext &context) {
-    log_debug("print_fn");
-    if (!module)
-        return log_error_f("module is nullptr");
+// llvm::Function *init_print_fn(llvm::Module *module,
+//                               llvm::LLVMContext &context) {
+//     log_debug("print_fn");
+//     if (!module)
+//         return log_error_f("module is nullptr");
 
-    llvm::FunctionType *printfnType = llvm::FunctionType::get(
-        llvm::Type::getInt32Ty(context), // return int
-        llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(context)), // char*
-        true // variadic
-    );
-    llvm::Function *printfn = llvm::cast<llvm::Function>(
-        module->getOrInsertFunction("printf", printfnType).getCallee());
-    return printfn;
-}
-
-llvm::Function *add_fn = nullptr;
-llvm::Function *sub_fn = nullptr;
-llvm::Function *mul_fn = nullptr;
-llvm::Function *div_fn = nullptr;
-llvm::Function *printf_fn = nullptr;
+//     llvm::FunctionType *printfnType = llvm::FunctionType::get(
+//         llvm::Type::getInt32Ty(context), // return int
+//         llvm::PointerType::getUnqual(llvm::Type::getInt8Ty(context)), //
+//         char* true // variadic
+//     );
+//     llvm::Function *printfn = llvm::cast<llvm::Function>(
+//         module->getOrInsertFunction("printf", printfnType).getCallee());
+//     return printfn;
+// }
 
 void init_functions(llvm::Module *module, llvm::LLVMContext &context) {
     log_debug("init_functions");
@@ -85,5 +85,5 @@ void init_functions(llvm::Module *module, llvm::LLVMContext &context) {
     sub_fn = bin_math_fn(module, context, "sub");
     mul_fn = bin_math_fn(module, context, "mul");
     div_fn = bin_math_fn(module, context, "div");
-    printf_fn = init_printf_fn(module, context);
+    // print_fn = init_print_fn(module, context);
 }

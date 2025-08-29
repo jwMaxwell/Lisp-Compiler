@@ -3,6 +3,8 @@
 
 #include "functions.h"
 #include "llvm_lisp.h"
+#include "runtime.h"
+#include "runtime_ir.h"
 #include "tokenizer.h"
 #include <iostream>
 #include <llvm/IR/IRBuilder.h>
@@ -77,27 +79,10 @@ public:
 
   llvm::Value *codegen() override {
     log_debug("String_Literal->codegen()");
-    // Add null terminator
-    auto strConstant =
-        llvm::ConstantDataArray::getString(the_context, value, true);
 
-    // Create a global in the module
-    auto *gVar =
-        new llvm::GlobalVariable(*the_module, strConstant->getType(),
-                                 true, // isConstant
-                                 llvm::GlobalValue::PrivateLinkage, strConstant,
-                                 ".str" // internal name
-        );
-
-    gVar->setAlignment(llvm::MaybeAlign(1));
-
-    // Return i8* pointer to the first character
-    llvm::Constant *zero =
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(the_context), 0);
-    llvm::Value *indices[] = {zero, zero};
-
-    return llvm::ConstantExpr::getGetElementPtr(strConstant->getType(), gVar,
-                                                indices);
+    auto stringPtr = the_builder.CreateGlobalString(value);
+    return the_builder.CreateCall(runtime_ir.string_handle, {stringPtr},
+                                  "strobj");
   }
 };
 
@@ -115,8 +100,10 @@ public:
   llvm::Value *codegen() override {
     log_debug("Numeric_Literal->codegen()");
     print(1);
-    return llvm::ConstantFP::get(llvm::Type::getDoubleTy(the_context),
-                                 std::stod(value));
+
+    auto val = llvm::ConstantFP::get(llvm::Type::getDoubleTy(the_context),
+                                     std::stod(value));
+    return the_builder.CreateCall(runtime_ir.number_handle, {val}, "numobj");
   }
 };
 
@@ -141,9 +128,22 @@ public:
       return mul_fn;
     else if (value == "/")
       return div_fn;
-    else if (value == "printf")
-      return printf_fn;
-    return log_error_f("identifier does not map to any given function");
+    else if (value == "print")
+      return runtime_ir.print_value;
+    else if (value == "cons")
+      return runtime_ir.cons;
+    else if (value == "car")
+      return runtime_ir.car;
+    else if (value == "cdr")
+      return runtime_ir.cdr;
+    // else if (value == "atom?")
+    //   return runtime_ir.is_atom;
+    // else if (value == "eq?")
+    //   return runtime_ir.eq;
+
+    std::string error = "identifier does not map to any given function: ";
+    error += value;
+    return log_error_f(error.c_str());
   }
 };
 
@@ -164,11 +164,54 @@ public:
     }
   }
 
+  llvm::Value *quote_codegen(node_ptr n) {
+    log_debug("quote_codegen()");
+    if (n->get_class_name() == "numeric_literal") {
+      std::shared_ptr<Literal> temp_node =
+          std::dynamic_pointer_cast<Literal>(n);
+      auto val = llvm::ConstantFP::get(llvm::Type::getDoubleTy(the_context),
+                                       std::stod(temp_node->get_value()));
+      return the_builder.CreateCall(runtime_ir.number_handle, {val}, "numobj");
+    } else if (n->get_class_name() == "string_literal") {
+      std::shared_ptr<Literal> temp_node =
+          std::dynamic_pointer_cast<Literal>(n);
+      auto stringPtr = the_builder.CreateGlobalString(temp_node->get_value());
+      return the_builder.CreateCall(runtime_ir.string_handle, {stringPtr},
+                                    "strobj");
+    } else if (n->get_class_name() == "identifier_literal") {
+      std::shared_ptr<Literal> temp_node =
+          std::dynamic_pointer_cast<Literal>(n);
+      auto symbolPtr = the_builder.CreateGlobalString(temp_node->get_value());
+      return the_builder.CreateCall(runtime_ir.symbol_handle, {symbolPtr},
+                                    "symobj");
+    } else if (n->get_class_name() == "expression") {
+      std::shared_ptr<Expression> expr_node =
+          std::dynamic_pointer_cast<Expression>(n);
+
+      llvm::Value *acc = the_builder.CreateCall(runtime_ir.nil_handle, {});
+      for (int i = (int)expr_node->children.size() - 1; i >= 0; --i) {
+        llvm::Value *element = quote_codegen(expr_node->children[i]);
+        acc = the_builder.CreateCall(runtime_ir.cons, {element, acc}, "cons");
+      }
+      return acc;
+    }
+    return log_error_v("Type not supported by quote");
+  }
+
   llvm::Value *codegen() override {
     log_debug("Expression->codegen()");
 
     if (children.empty()) {
       return log_error_v("infertile expression");
+    }
+
+    if (auto id =
+            std::dynamic_pointer_cast<Identifier_Literal>(children.at(0))) {
+      if (id->get_value() == "quote") {
+        if (children.size() < 2)
+          return log_error_v("quote cannot be empty");
+        return quote_codegen(children.at(1));
+      }
     }
 
     llvm::Value *fn = children.at(0)->codegen();
@@ -185,10 +228,12 @@ public:
       args.push_back(arg);
     }
 
-    if (llvm::Function *func = llvm::dyn_cast<llvm::Function>(fn)) {
-      return the_builder.CreateCall(func, args, "callresult");
+    llvm::Function *func = llvm::dyn_cast<llvm::Function>(fn);
+    if (func->getReturnType()->isVoidTy()) {
+      the_builder.CreateCall(func, args);
+      return the_builder.getInt32(0);
     } else {
-      return log_error_v("invalid function");
+      return the_builder.CreateCall(func, args, "callresult");
     }
   }
 };

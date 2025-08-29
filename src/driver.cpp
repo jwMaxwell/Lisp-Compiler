@@ -2,12 +2,18 @@
 #include "llvm_lisp.h"
 #include "nodes.h"
 #include "parser.h"
+#include "runtime_ir.h"
 #include "tokenizer.h"
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include "llvm/IR/Module.h"
+#include "llvm/IRReader/IRReader.h"
+#include "llvm/Linker/Linker.h"
+#include "llvm/Support/SourceMgr.h"
 
 int log_fatal_error(std::string error_message);
 
@@ -47,6 +53,18 @@ int main(int argc, char **argv) {
   std::cout << "============= LLVM IR ==============" << std::endl;
   init_llvm();
   init_functions(the_module.get(), the_context);
+  init_runtime_ir(the_module.get(), the_context);
+
+  // // Link runtime
+  // llvm::SMDiagnostic err;
+  // llvm::LLVMContext context;
+  // auto runtimeModule = llvm::parseIRFile("src/runtime.bc", err, context);
+  // if (!runtimeModule) {
+  //   std::cerr << "Error parsing runtime.o\n";
+  //   return 1;
+  // }
+  // llvm::Linker::linkModules(*the_module, std::move(runtimeModule));
+
   llvm::Value *ir_code =
       std::dynamic_pointer_cast<Expression_Container>(ast)->codegen();
   ir_code->getName(); // gets rid of the warning
