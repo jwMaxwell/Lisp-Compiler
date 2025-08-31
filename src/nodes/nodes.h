@@ -1,11 +1,15 @@
 #ifndef NODES_H
 #define NODES_H
 
-#include "functions.h"
-#include "llvm_lisp.h"
-#include "runtime.h"
-#include "runtime_ir.h"
-#include "tokenizer.h"
+#include "../llvm/llvm_lisp.h"
+#include "../parser/tokenizer.h"
+#include "../runtime/runtime.h"
+#include "../runtime/runtime_ir.h"
+#include "Boolean_Literal.h"
+#include "Literal.h"
+#include "Node.h"
+#include "Numeric_Literal.h"
+#include "String_Literal.h"
 #include <iostream>
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/LLVMContext.h>
@@ -15,120 +19,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-
-class Node {
-protected:
-  std::string class_name;
-
-public:
-  virtual ~Node() = default;
-  virtual std::string get_class_name() const { return class_name; }
-  virtual void print(int indent = 0) const = 0;
-  virtual llvm::Value *codegen() = 0;
-};
-
-class Literal : public Node {
-protected:
-  std::string value;
-  std::string type;
-  size_t line;
-  size_t column;
-
-public:
-  Literal(const token_t &tok)
-      : value(tok.value), type(tok.type), line(tok.line), column(tok.column) {
-    class_name = "literal";
-  }
-
-  void set_value(std::string _value) { value = _value; }
-
-  const std::string get_value() const { return value; }
-
-  const std::string get_type() const { return type; }
-
-  size_t get_line() const { return line; }
-
-  size_t get_column() const { return column; }
-
-  std::string get_class_name() const override { return class_name; }
-
-  void print(int indent = 0) const override {
-    std::string indentation(indent, ' ');
-    std::cout << indentation << "Literal: " << value << " (Type: " << type
-              << ", Line: " << line << ", Column: " << column << ")"
-              << std::endl;
-  }
-
-  llvm::Value *codegen() override {
-    log_debug("Literal->codegen()");
-    return nullptr;
-  }
-};
-
-class String_Literal : public Literal {
-public:
-  String_Literal(const token_t &tok) : Literal(tok) {
-    class_name = "string_literal";
-  }
-
-  void print(int indent = 0) const override {
-    std::string indentation(indent, ' ');
-    std::cout << indentation << "String_Literal: \"" << value << "\""
-              << std::endl;
-  }
-
-  llvm::Value *codegen() override {
-    log_debug("String_Literal->codegen()");
-
-    auto stringPtr = the_builder.CreateGlobalString(value);
-    return the_builder.CreateCall(runtime_ir.string_handle, {stringPtr},
-                                  "strobj");
-  }
-};
-
-class Numeric_Literal : public Literal {
-public:
-  Numeric_Literal(const token_t &tok) : Literal(tok) {
-    class_name = "numeric_literal";
-  }
-
-  void print(int indent = 0) const override {
-    std::string indentation(indent, ' ');
-    std::cout << indentation << "Numeric_Literal: " << value << std::endl;
-  }
-
-  llvm::Value *codegen() override {
-    log_debug("Numeric_Literal->codegen()");
-    print(1);
-
-    auto val = llvm::ConstantFP::get(llvm::Type::getDoubleTy(the_context),
-                                     std::stod(value));
-    return the_builder.CreateCall(runtime_ir.number_handle, {val}, "numobj");
-  }
-};
-
-class Boolean_Literal : public Literal {
-public:
-  Boolean_Literal(const token_t &tok) : Literal(tok) {
-    class_name = "boolen_literal";
-  }
-
-  void print(int indent = 0) const override {
-    std::string indentation(indent, ' ');
-    std::cout << indentation << "Boolean_Literal: " << value << std::endl;
-  }
-
-  llvm::Value *codegen() override {
-    log_debug("Boolean_Literal->codegen()");
-    print(1);
-
-    int temp = value == "true" ? 1 : 0;
-    log_debug("Boolean_Literal->codegen()");
-    auto val =
-        llvm::ConstantInt::get(llvm::Type::getInt32Ty(the_context), temp);
-    return the_builder.CreateCall(runtime_ir.bool_handle, {val}, "boolobj");
-  }
-};
 
 class Identifier_Literal : public Literal {
 public:
@@ -143,15 +33,7 @@ public:
 
   llvm::Value *codegen() override {
     log_debug("Identifier_Literal->codegen()");
-    if (value == "+")
-      return add_fn;
-    else if (value == "-")
-      return sub_fn;
-    else if (value == "*")
-      return mul_fn;
-    else if (value == "/")
-      return div_fn;
-    else if (value == "print")
+    if (value == "print")
       return runtime_ir.print_value;
     else if (value == "cons")
       return runtime_ir.cons;
@@ -185,6 +67,50 @@ public:
     for (const auto &child : children) {
       child->print(indent + 2);
     }
+  }
+
+  llvm::Value *add_codegen() {
+    log_debug("add_codegen()");
+
+    llvm::Value *acc = children.at(1)->codegen();
+    for (size_t i = 2; i < children.size(); ++i) {
+      llvm::Value *next = children.at(i)->codegen();
+      acc = the_builder.CreateCall(runtime_ir.get_add, {acc, next}, "add");
+    }
+    return acc;
+  }
+
+  llvm::Value *sub_codegen() {
+    log_debug("sub_codegen()");
+
+    llvm::Value *acc = children.at(1)->codegen();
+    for (size_t i = 2; i < children.size(); ++i) {
+      llvm::Value *next = children.at(i)->codegen();
+      acc = the_builder.CreateCall(runtime_ir.get_sub, {acc, next}, "sub");
+    }
+    return acc;
+  }
+
+  llvm::Value *mul_codegen() {
+    log_debug("mul_codegen()");
+
+    llvm::Value *acc = children.at(1)->codegen();
+    for (size_t i = 2; i < children.size(); ++i) {
+      llvm::Value *next = children.at(i)->codegen();
+      acc = the_builder.CreateCall(runtime_ir.get_mul, {acc, next}, "mul");
+    }
+    return acc;
+  }
+
+  llvm::Value *div_codegen() {
+    log_debug("div_codegen()");
+
+    llvm::Value *acc = children.at(1)->codegen();
+    for (size_t i = 2; i < children.size(); ++i) {
+      llvm::Value *next = children.at(i)->codegen();
+      acc = the_builder.CreateCall(runtime_ir.get_div, {acc, next}, "div");
+    }
+    return acc;
   }
 
   llvm::Value *quote_codegen(node_ptr n) {
@@ -234,6 +160,22 @@ public:
         if (children.size() < 2)
           return log_error_v("quote cannot be empty");
         return quote_codegen(children.at(1));
+      } else if (id->get_value() == "+") {
+        if (children.size() < 2)
+          return log_error_v("Cannot Add nothing");
+        return add_codegen();
+      } else if (id->get_value() == "-") {
+        if (children.size() < 2)
+          return log_error_v("Cannot Add nothing");
+        return sub_codegen();
+      } else if (id->get_value() == "*") {
+        if (children.size() < 2)
+          return log_error_v("Cannot Add nothing");
+        return mul_codegen();
+      } else if (id->get_value() == "/") {
+        if (children.size() < 2)
+          return log_error_v("Cannot Add nothing");
+        return div_codegen();
       }
     }
 

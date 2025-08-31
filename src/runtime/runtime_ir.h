@@ -11,8 +11,12 @@ struct RuntimeIR {
   llvm::Function *cons = nullptr;
   llvm::Function *car = nullptr;
   llvm::Function *cdr = nullptr;
-  llvm::Function *is_atom = nullptr;     // returns i32
-  llvm::Function *eq = nullptr;          // returns i32
+  llvm::Function *is_atom = nullptr; // returns i32
+  llvm::Function *eq = nullptr;      // returns i32
+  llvm::Function *get_add = nullptr;
+  llvm::Function *get_sub = nullptr;
+  llvm::Function *get_mul = nullptr;
+  llvm::Function *get_div = nullptr;
   llvm::Function *print_value = nullptr; // void(Value*)
 };
 

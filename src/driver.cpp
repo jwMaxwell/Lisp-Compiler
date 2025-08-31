@@ -1,9 +1,9 @@
-#include "functions.h"
-#include "llvm_lisp.h"
-#include "nodes.h"
-#include "parser.h"
-#include "runtime_ir.h"
-#include "tokenizer.h"
+#include "nodes/nodes.h"
+#include "parser/parser.h"
+#include "parser/tokenizer.h"
+#include "runtime/runtime_ir.h"
+#include "llvm/llvm_lisp.h"
+
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -52,7 +52,6 @@ int main(int argc, char **argv) {
 
   std::cout << "============= LLVM IR ==============" << std::endl;
   init_llvm();
-  init_functions(the_module.get(), the_context);
   init_runtime_ir(the_module.get(), the_context);
 
   // // Link runtime

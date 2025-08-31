@@ -111,6 +111,22 @@ Value *eq(Value *a, Value *b) {
   return make_bool(0);
 }
 
+Value *get_add(Value *a, Value *b) {
+  return make_number(*(double *)a->payload + *(double *)b->payload);
+}
+
+Value *get_sub(Value *a, Value *b) {
+  return make_number(*(double *)a->payload - *(double *)b->payload);
+}
+
+Value *get_mul(Value *a, Value *b) {
+  return make_number(*(double *)a->payload * *(double *)b->payload);
+}
+
+Value *get_div(Value *a, Value *b) {
+  return make_number(*(double *)a->payload / *(double *)b->payload);
+}
+
 void print_value(Value *v) {
   if (!v) {
     printf("nil");

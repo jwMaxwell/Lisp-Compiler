@@ -31,6 +31,10 @@ Value *car(Value *v);
 Value *cdr(Value *v);
 Value *is_atom(Value *v);
 Value *eq(Value *a, Value *b);
+Value *get_add(Value *a, Value *b);
+Value *get_sub(Value *a, Value *b);
+Value *get_mul(Value *a, Value *b);
+Value *get_div(Value *a, Value *b);
 
 void print_value(Value *v); // convenience, prints readable form
 }

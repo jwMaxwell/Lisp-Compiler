@@ -33,5 +33,9 @@ void init_runtime_ir(llvm::Module *M, llvm::LLVMContext &C) {
   runtime_ir.cdr = decl(M, "cdr", I8Ptr, {I8Ptr});
   runtime_ir.is_atom = decl(M, "is_atom", I8Ptr, {I8Ptr});
   runtime_ir.eq = decl(M, "eq", I8Ptr, {I8Ptr, I8Ptr});
+  runtime_ir.get_add = decl(M, "get_add", I8Ptr, {I8Ptr, I8Ptr});
+  runtime_ir.get_sub = decl(M, "get_sub", I8Ptr, {I8Ptr, I8Ptr});
+  runtime_ir.get_mul = decl(M, "get_mul", I8Ptr, {I8Ptr, I8Ptr});
+  runtime_ir.get_div = decl(M, "get_div", I8Ptr, {I8Ptr, I8Ptr});
   runtime_ir.print_value = decl(M, "print_value", Void, {I8Ptr});
 }

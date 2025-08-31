@@ -10,16 +10,20 @@ LLVM_LDFLAGS = `$(LLVM_CONFIG) --ldflags --system-libs --libs core`
 CXXFLAGS = -std=c++20 -Wall $(LLVM_CXXFLAGS)
 
 # Executable name
-EXEC = driver.exe
+EXEC = driver
 
 # Source files
-SRCS = src/driver.cpp src/tokenizer.cpp src/parser.cpp src/llvm_lisp.cpp src/functions.cpp src/runtime.cpp src/runtime_ir.cpp
+SRCS = src/driver.cpp src/parser/tokenizer.cpp src/parser/parser.cpp \
+src/llvm/llvm_lisp.cpp src/runtime/runtime.cpp src/runtime/runtime_ir.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
 
 # Header files
-HDRS = src/tokenizer.h src/nodes.h src/parser.h src/llvm_lisp.h src/functions.h src/runtime.h src/runtime_ir.h
+HDRS = src/parser/tokenizer.h src/nodes/nodes.h src/nodes/Node.h \
+src/nodes/Literal.h src/nodes/String_Literal.h src/nodes/Numeric_Literal.h \
+src/nodes/Boolean_Literal.h src/parser/parser.h src/llvm/llvm_lisp.h \
+src/runtime/runtime.h src/runtime/runtime_ir.h
 
 # Default target
 all: $(EXEC)
