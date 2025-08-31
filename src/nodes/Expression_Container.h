@@ -3,10 +3,10 @@
 
 #include "../llvm/llvm_lisp.h"
 #include "Node.h"
+#include "node_fwd.h"
 #include <iostream>
 #include <llvm/IR/IRBuilder.h>
 
-using node_ptr = std::shared_ptr<Node>;
 class Expression_Container : public Node {
 public:
   std::vector<node_ptr> children;

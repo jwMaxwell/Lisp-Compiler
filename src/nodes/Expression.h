@@ -6,9 +6,10 @@
 #include "Identifier_Literal.h"
 #include "Literal.h"
 #include "Node.h"
+#include "functions.h"
+#include "node_fwd.h"
 #include <iostream>
 
-using node_ptr = std::shared_ptr<Node>;
 class Expression : public Node {
 public:
   std::vector<node_ptr> children;
@@ -23,50 +24,6 @@ public:
     for (const auto &child : children) {
       child->print(indent + 2);
     }
-  }
-
-  llvm::Value *add_codegen() {
-    log_debug("add_codegen()");
-
-    llvm::Value *acc = children.at(1)->codegen();
-    for (size_t i = 2; i < children.size(); ++i) {
-      llvm::Value *next = children.at(i)->codegen();
-      acc = the_builder.CreateCall(runtime_ir.get_add, {acc, next}, "add");
-    }
-    return acc;
-  }
-
-  llvm::Value *sub_codegen() {
-    log_debug("sub_codegen()");
-
-    llvm::Value *acc = children.at(1)->codegen();
-    for (size_t i = 2; i < children.size(); ++i) {
-      llvm::Value *next = children.at(i)->codegen();
-      acc = the_builder.CreateCall(runtime_ir.get_sub, {acc, next}, "sub");
-    }
-    return acc;
-  }
-
-  llvm::Value *mul_codegen() {
-    log_debug("mul_codegen()");
-
-    llvm::Value *acc = children.at(1)->codegen();
-    for (size_t i = 2; i < children.size(); ++i) {
-      llvm::Value *next = children.at(i)->codegen();
-      acc = the_builder.CreateCall(runtime_ir.get_mul, {acc, next}, "mul");
-    }
-    return acc;
-  }
-
-  llvm::Value *div_codegen() {
-    log_debug("div_codegen()");
-
-    llvm::Value *acc = children.at(1)->codegen();
-    for (size_t i = 2; i < children.size(); ++i) {
-      llvm::Value *next = children.at(i)->codegen();
-      acc = the_builder.CreateCall(runtime_ir.get_div, {acc, next}, "div");
-    }
-    return acc;
   }
 
   llvm::Value *quote_codegen(node_ptr n) {
@@ -119,19 +76,19 @@ public:
       } else if (id->get_value() == "+") {
         if (children.size() < 2)
           return log_error_v("Cannot Add nothing");
-        return add_codegen();
+        return add_codegen(children);
       } else if (id->get_value() == "-") {
         if (children.size() < 2)
           return log_error_v("Cannot Add nothing");
-        return sub_codegen();
+        return sub_codegen(children);
       } else if (id->get_value() == "*") {
         if (children.size() < 2)
           return log_error_v("Cannot Add nothing");
-        return mul_codegen();
+        return mul_codegen(children);
       } else if (id->get_value() == "/") {
         if (children.size() < 2)
           return log_error_v("Cannot Add nothing");
-        return div_codegen();
+        return div_codegen(children);
       }
     }
 

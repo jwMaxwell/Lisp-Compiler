@@ -25,6 +25,7 @@ OBJS = $(SRCS:.cpp=.o)
 
 # Header files
 HDRS = src/parser/tokenizer.h \
+src/nodes/node_fwd.h \
 src/nodes/Node.h \
 src/nodes/Literal.h \
 src/nodes/String_Literal.h \
