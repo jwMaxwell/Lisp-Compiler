@@ -13,17 +13,28 @@ CXXFLAGS = -std=c++20 -Wall $(LLVM_CXXFLAGS)
 EXEC = driver
 
 # Source files
-SRCS = src/driver.cpp src/parser/tokenizer.cpp src/parser/parser.cpp \
-src/llvm/llvm_lisp.cpp src/runtime/runtime.cpp src/runtime/runtime_ir.cpp
+SRCS = src/driver.cpp \
+src/parser/tokenizer.cpp \
+src/parser/parser.cpp \
+src/llvm/llvm_lisp.cpp \
+src/runtime/runtime.cpp \
+src/runtime/runtime_ir.cpp
 
 # Object files
 OBJS = $(SRCS:.cpp=.o)
 
 # Header files
-HDRS = src/parser/tokenizer.h src/nodes/nodes.h src/nodes/Node.h \
-src/nodes/Literal.h src/nodes/String_Literal.h src/nodes/Numeric_Literal.h \
-src/nodes/Boolean_Literal.h src/parser/parser.h src/llvm/llvm_lisp.h \
-src/runtime/runtime.h src/runtime/runtime_ir.h
+HDRS = src/parser/tokenizer.h \
+src/nodes/Node.h \
+src/nodes/Literal.h \
+src/nodes/String_Literal.h \
+src/nodes/Numeric_Literal.h \
+src/nodes/Boolean_Literal.h \
+src/nodes/Expression_Container.h \
+src/parser/parser.h \
+src/llvm/llvm_lisp.h \
+src/runtime/runtime.h \
+src/runtime/runtime_ir.h
 
 # Default target
 all: $(EXEC)

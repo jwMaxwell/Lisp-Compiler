@@ -1,7 +1,13 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "../nodes/nodes.h"
+#include "../nodes/Boolean_Literal.h"
+#include "../nodes/Expression.h"
+#include "../nodes/Expression_Container.h"
+#include "../nodes/Identifier_Literal.h"
+#include "../nodes/Node.h"
+#include "../nodes/Numeric_Literal.h"
+#include "../nodes/String_Literal.h"
 #include "tokenizer.h"
 #include <vector>
 

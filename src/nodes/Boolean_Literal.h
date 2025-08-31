@@ -1,6 +1,9 @@
 #ifndef BOOLEAN_LITERAL_H_
 #define BOOLEAN_LITERAL_H_
 
+#include "../llvm/llvm_lisp.h"
+#include "../parser/tokenizer.h"
+#include "../runtime/runtime_ir.h"
 #include "Literal.h"
 #include <iostream>
 #include <llvm/IR/Value.h>

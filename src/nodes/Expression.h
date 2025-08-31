@@ -1,56 +1,12 @@
-#ifndef NODES_H
-#define NODES_H
+#ifndef EXPRESSION_H_
+#define EXPRESSION_H_
 
 #include "../llvm/llvm_lisp.h"
-#include "../parser/tokenizer.h"
-#include "../runtime/runtime.h"
 #include "../runtime/runtime_ir.h"
-#include "Boolean_Literal.h"
+#include "Identifier_Literal.h"
 #include "Literal.h"
 #include "Node.h"
-#include "Numeric_Literal.h"
-#include "String_Literal.h"
 #include <iostream>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/Module.h>
-#include <llvm/IR/Value.h>
-#include <llvm/IR/Verifier.h>
-#include <memory>
-#include <string>
-#include <vector>
-
-class Identifier_Literal : public Literal {
-public:
-  Identifier_Literal(const token_t &tok) : Literal(tok) {
-    class_name = "identifier_literal";
-  }
-
-  void print(int indent = 0) const override {
-    std::string indentation(indent, ' ');
-    std::cout << indentation << "Identifier_Literal: " << value << std::endl;
-  }
-
-  llvm::Value *codegen() override {
-    log_debug("Identifier_Literal->codegen()");
-    if (value == "print")
-      return runtime_ir.print_value;
-    else if (value == "cons")
-      return runtime_ir.cons;
-    else if (value == "car")
-      return runtime_ir.car;
-    else if (value == "cdr")
-      return runtime_ir.cdr;
-    else if (value == "atom?")
-      return runtime_ir.is_atom;
-    else if (value == "eq?")
-      return runtime_ir.eq;
-
-    std::string error = "identifier does not map to any given function: ";
-    error += value;
-    return log_error_f(error.c_str());
-  }
-};
 
 using node_ptr = std::shared_ptr<Node>;
 class Expression : public Node {
@@ -203,41 +159,4 @@ public:
   }
 };
 
-class Expression_Container : public Node {
-public:
-  std::vector<node_ptr> children;
-  Expression_Container() { class_name = "Expression_Container"; }
-
-  void print(int indent = 0) const override {
-    std::string indentation(indent, ' ');
-    std::cout << indentation << "Expression_Container" << std::endl;
-    for (const auto &expr : children) {
-      expr->print(indent + 2);
-    }
-  }
-
-  llvm::Value *codegen() override {
-    log_debug("Expression_Container->codegen()");
-
-    auto *return_type = llvm::Type::getInt32Ty(the_context);
-    auto *function_type = llvm::FunctionType::get(return_type, {}, false);
-    auto *function =
-        llvm::Function::Create(function_type, llvm::Function::ExternalLinkage,
-                               "main", the_module.get());
-    auto *block = llvm::BasicBlock::Create(the_context, "entry", function);
-    the_builder.SetInsertPoint(block);
-
-    llvm::Value *lastValue = nullptr;
-    for (const auto &expr : children) {
-      lastValue = expr->codegen();
-      if (!lastValue) {
-        return log_error_v(
-            "Failed to generate code for an expression in the sequence");
-      }
-    }
-    the_builder.CreateRet(lastValue);
-    return function;
-  }
-};
-
-#endif // NODES_H
+#endif // EXPRESSION_H_
