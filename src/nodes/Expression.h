@@ -75,19 +75,19 @@ public:
         return quote_codegen(children.at(1));
       } else if (id->get_value() == "+") {
         if (children.size() < 2)
-          return log_error_v("Cannot Add nothing");
+          return log_error_v("Cannot add nothing");
         return add_codegen(children);
       } else if (id->get_value() == "-") {
         if (children.size() < 2)
-          return log_error_v("Cannot Add nothing");
+          return log_error_v("Cannot subtract nothing");
         return sub_codegen(children);
       } else if (id->get_value() == "*") {
         if (children.size() < 2)
-          return log_error_v("Cannot Add nothing");
+          return log_error_v("Cannot multiply nothing");
         return mul_codegen(children);
       } else if (id->get_value() == "/") {
         if (children.size() < 2)
-          return log_error_v("Cannot Add nothing");
+          return log_error_v("Cannot divide nothing");
         return div_codegen(children);
       }
     }

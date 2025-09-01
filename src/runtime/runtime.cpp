@@ -23,7 +23,6 @@ Value *make_nil() {
   return NIL;
 }
 
-// Value *make_bool(int b) { return mkval(T_BOOL, (void *)(intptr_t)b); }
 Value *make_bool(int b) {
   int *p = (int *)std::malloc(sizeof(int));
   *p = b;

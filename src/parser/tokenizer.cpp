@@ -5,6 +5,29 @@ bool isNumber(const std::string &str) {
   return std::regex_match(str, pattern);
 }
 
+void replace_all(std::string &s, std::string const &toReplace,
+                 std::string const &replaceWith) {
+  std::string buf;
+  std::size_t pos = 0;
+  std::size_t prevPos;
+
+  // Reserves rough estimate of final size of string.
+  buf.reserve(s.size());
+
+  while (true) {
+    prevPos = pos;
+    pos = s.find(toReplace, pos);
+    if (pos == std::string::npos)
+      break;
+    buf.append(s, prevPos, pos - prevPos);
+    buf += replaceWith;
+    pos += toReplace.size();
+  }
+
+  buf.append(s, prevPos, s.size() - prevPos);
+  s.swap(buf);
+}
+
 std::vector<token_t> generateTokens(const std::string &text) {
   std::vector<token_t> matches;
   std::regex regexPattern(R"(;.*?\n|\(|\)|"[^"]*"|'|[^\s()]+)");
@@ -35,13 +58,14 @@ std::vector<token_t> generateTokens(const std::string &text) {
       type = "number";
     else if (match_str == "(" || match_str == ")")
       type = "symbol";
-    else if (match_str[0] == '"' && match_str.back() == '"')
+    else if (match_str[0] == '"' && match_str.back() == '"') {
       type = "string";
+      match_str = match_str.substr(1, match_str.length() - 2);
+      replace_all(match_str, "\\n", "\n");
+      replace_all(match_str, "\\t", "\t");
+    }
 
-    matches.push_back({type == "string"
-                           ? match_str.substr(1, match_str.length() - 2)
-                           : match_str,
-                       type, line, column});
+    matches.push_back({match_str, type, line, column});
   }
 
   return matches;
