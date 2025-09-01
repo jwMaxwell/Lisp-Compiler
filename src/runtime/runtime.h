@@ -2,6 +2,7 @@
 #define RUNTIME_H
 
 #include <cstdint>
+#include <vector>
 
 extern "C" {
 
@@ -11,8 +12,11 @@ typedef struct Cons Cons;
 enum Tag { T_NIL = 0, T_NUMBER, T_STRING, T_SYMBOL, T_CONS, T_BOOL };
 
 struct Value {
-  int32_t tag;
-  void *payload;
+  int32_t tag;     // type
+  void *payload;   // value
+  uint8_t marked;  // gc mark bit
+  uint8_t _pad[3]; // TODO: Figure out what this is for
+  Value *gc_next;  // intrusive LL for gc sweeps
 };
 
 struct Cons {
@@ -36,7 +40,13 @@ Value *get_sub(Value *a, Value *b);
 Value *get_mul(Value *a, Value *b);
 Value *get_div(Value *a, Value *b);
 
-void print_value(Value *v); // convenience, prints readable form
+void print_value(Value *v);
+
+// GC API
+void gc_collect();
+void gc_set_stack_bottom(void *stack_bottom);
+void gc_root_push(Value *);
+void gc_root_pop_n(size_t n);
 }
 
 #endif // RUNTIME_H

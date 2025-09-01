@@ -26,6 +26,7 @@ public:
     }
   }
 
+  // TODO: Add gc
   llvm::Value *quote_codegen(node_ptr n) {
     log_debug("quote_codegen()");
     if (n->get_class_name() == "numeric_literal") {
@@ -60,6 +61,7 @@ public:
     return log_error_v("Type not supported by quote");
   }
 
+  // TODO: Function has too many responsabilities
   llvm::Value *codegen() override {
     log_debug("Expression->codegen()");
 
@@ -67,52 +69,58 @@ public:
       return log_error_v("infertile expression");
     }
 
-    if (auto id =
-            std::dynamic_pointer_cast<Identifier_Literal>(children.at(0))) {
-      if (id->get_value() == "quote") {
-        if (children.size() < 2)
-          return log_error_v("quote cannot be empty");
-        return quote_codegen(children.at(1));
-      } else if (id->get_value() == "+") {
-        if (children.size() < 2)
-          return log_error_v("Cannot add nothing");
-        return add_codegen(children);
-      } else if (id->get_value() == "-") {
-        if (children.size() < 2)
-          return log_error_v("Cannot subtract nothing");
-        return sub_codegen(children);
-      } else if (id->get_value() == "*") {
-        if (children.size() < 2)
-          return log_error_v("Cannot multiply nothing");
-        return mul_codegen(children);
-      } else if (id->get_value() == "/") {
-        if (children.size() < 2)
-          return log_error_v("Cannot divide nothing");
-        return div_codegen(children);
-      }
-    }
-
-    llvm::Value *fn = children.at(0)->codegen();
-    if (!fn) {
-      return log_error_v("invalid function");
+    std::string fn_name =
+        std::dynamic_pointer_cast<Identifier_Literal>(children.at(0))
+            ->get_value();
+    if (fn_name == "quote") {
+      return children.size() < 2 ? log_error_v("quote cannot be empty")
+                                 : quote_codegen(children.at(1));
     }
 
     std::vector<llvm::Value *> args;
+    size_t protected_count = 0;
     for (size_t i = 1; i < children.size(); ++i) {
       llvm::Value *arg = children.at(i)->codegen();
       if (!arg) {
         return log_error_v("invalid argument");
       }
+      the_builder.CreateCall(runtime_ir.gc_root_push, {arg});
+      ++protected_count;
       args.push_back(arg);
     }
 
-    llvm::Function *func = llvm::dyn_cast<llvm::Function>(fn);
-    if (func->getReturnType()->isVoidTy()) {
-      the_builder.CreateCall(func, args);
-      return the_builder.getInt32(0);
+    llvm::Value *result = nullptr;
+    if (fn_name == "+") {
+      result = add_codegen(args);
+    } else if (fn_name == "-") {
+      result = sub_codegen(args);
+    } else if (fn_name == "*") {
+      result = mul_codegen(args);
+    } else if (fn_name == "/") {
+      result = div_codegen(args);
     } else {
-      return the_builder.CreateCall(func, args, "callresult");
+      llvm::Value *fn = children.at(0)->codegen();
+      if (!fn) {
+        return log_error_v("invalid function");
+      }
+
+      llvm::Function *func = llvm::dyn_cast<llvm::Function>(fn);
+      if (func->getReturnType()->isVoidTy()) {
+        the_builder.CreateCall(func, args);
+        result = the_builder.getInt32(0);
+      } else {
+        result = the_builder.CreateCall(func, args, "callresult");
+      }
     }
+
+    the_builder.CreateCall(
+        runtime_ir.gc_root_pop_n,
+        {llvm::ConstantInt::get(llvm::Type::getInt64Ty(the_context),
+                                protected_count)});
+
+    /* the_builder.CreateCall(runtime_ir.gc_collect_fn, {}); */
+
+    return result;
   }
 };
 

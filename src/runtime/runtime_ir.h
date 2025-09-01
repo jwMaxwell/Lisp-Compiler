@@ -18,6 +18,10 @@ struct RuntimeIR {
   llvm::Function *get_mul = nullptr;
   llvm::Function *get_div = nullptr;
   llvm::Function *print_value = nullptr; // void(Value*)
+
+  llvm::Function *gc_root_push = nullptr;
+  llvm::Function *gc_root_pop_n = nullptr;
+  llvm::Function *gc_collect_fn = nullptr;
 };
 
 extern RuntimeIR runtime_ir;

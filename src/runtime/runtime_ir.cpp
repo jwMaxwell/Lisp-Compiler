@@ -1,6 +1,7 @@
 #include "runtime_ir.h"
 #include <llvm/IR/IRBuilder.h>
 #include <llvm/IR/Module.h>
+#include <llvm/IR/Type.h>
 
 RuntimeIR runtime_ir;
 
@@ -38,4 +39,9 @@ void init_runtime_ir(llvm::Module *M, llvm::LLVMContext &C) {
   runtime_ir.get_mul = decl(M, "get_mul", I8Ptr, {I8Ptr, I8Ptr});
   runtime_ir.get_div = decl(M, "get_div", I8Ptr, {I8Ptr, I8Ptr});
   runtime_ir.print_value = decl(M, "print_value", Void, {I8Ptr});
+
+  runtime_ir.gc_root_push = decl(M, "gc_root_push", Void, {I8Ptr});
+  runtime_ir.gc_root_pop_n =
+      decl(M, "gc_root_pop_n", Void, {llvm::Type::getInt64Ty(C)});
+  runtime_ir.gc_collect_fn = decl(M, "gc_collect", Void, {});
 }

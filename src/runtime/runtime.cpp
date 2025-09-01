@@ -8,10 +8,109 @@
 static std::unordered_map<std::string, Value *> symbol_table;
 
 extern "C" {
+// GC API
+static Value *gc_head = nullptr;
+static size_t gc_allocs_since_last = 0;
+static size_t gc_threshold = 10000;
+static thread_local std::vector<Value *> gc_root_stack;
+
+static inline void
+gc_register(Value *v) { // TODO: Might need to pull this out of "C"
+  v->marked = 0;
+  v->gc_next = gc_head;
+  gc_head = v;
+  if (++gc_allocs_since_last >= gc_threshold) {
+    gc_collect();
+  }
+}
+
+void gc_root_push(Value *v) { gc_root_stack.push_back(v); }
+
+void gc_root_pop_n(size_t n) {
+  while (n--)
+    gc_root_stack.pop_back();
+}
+
+static void gc_mark(Value *v) {
+  if (!v || v->marked)
+    return;
+  v->marked = 1;
+
+  if (v->tag == T_CONS) {
+    Cons *c = (Cons *)v->payload;
+    gc_mark(c->car);
+    gc_mark(c->cdr);
+  }
+}
+
+// Mark stored values so they don't get removed
+static void gc_mark_symbol_table() {
+  for (auto kv : symbol_table) {
+    gc_mark(kv.second);
+  }
+}
+
+// Allow gc to mark NIL as roots
+static Value *NIL_singleton = nullptr;
+static void gc_mark_singletons() { gc_mark(NIL_singleton); }
+
+static void gc_mark_from_precise_roots() {
+  for (Value *v : gc_root_stack)
+    gc_mark(v);
+}
+
+static void gc_free_value(Value *v) {
+  if (!v)
+    return;
+  switch (v->tag) {
+  case T_CONS:
+    std::free((Cons *)v->payload);
+    break;
+  case T_STRING:
+  case T_SYMBOL:
+    std::free((char *)v->payload);
+    break;
+  case T_NUMBER:
+    std::free((double *)v->payload);
+    break;
+  case T_BOOL:
+    std::free((int *)v->payload);
+    break;
+  case T_NIL:
+    break;
+  }
+  std::free(v);
+}
+
+static void gc_sweep() {
+  Value **current = &gc_head;
+  while (Value *v = *current) {
+    if (!v->marked) {
+      *current = v->gc_next;
+      gc_free_value(v);
+    } else {
+      v->marked = 0; // clear for next cycle
+      current = &v->gc_next;
+    }
+  }
+}
+
+void gc_collect() {
+  gc_mark_singletons();
+  gc_mark_symbol_table();
+  gc_mark_from_precise_roots();
+
+  gc_sweep();
+
+  gc_allocs_since_last = 0;
+}
+
+// LISP API
 Value *mkval(int tag, void *payload) {
   Value *v = (Value *)std::malloc(sizeof(Value));
   v->tag = tag;
   v->payload = payload;
+  gc_register(v);
   return v;
 }
 
@@ -19,6 +118,7 @@ Value *make_nil() {
   static Value *NIL = nullptr;
   if (!NIL) {
     NIL = mkval(T_NIL, nullptr);
+    NIL_singleton = NIL;
   }
   return NIL;
 }

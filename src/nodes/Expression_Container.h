@@ -2,6 +2,7 @@
 #define EXPRESSION_CONTAINER_H_
 
 #include "../llvm/llvm_lisp.h"
+#include "../runtime/runtime_ir.h"
 #include "Node.h"
 #include "node_fwd.h"
 #include <iostream>
@@ -38,6 +39,7 @@ public:
         return log_error_v(
             "Failed to generate code for an expression in the sequence");
       }
+      the_builder.CreateCall(runtime_ir.gc_collect_fn, {});
     }
     the_builder.CreateRet(lastValue);
     return function;
