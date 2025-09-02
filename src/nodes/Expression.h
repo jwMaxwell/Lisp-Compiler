@@ -102,7 +102,7 @@ public:
       args.push_back(arg);
     }
 
-    CodegenResult result = nullptr;
+    CodegenResult result = {};
     if (fn_name == "+" || fn_name == "-" || fn_name == "*" || fn_name == "/") {
       std::vector<CodegenResult> nums;
       for (auto a : args) {
@@ -127,6 +127,9 @@ public:
       } else if (fn_name == "/") {
         result = div_codegen(nums);
       }
+
+      if (result.value != nullptr)
+        return result;
     } else {
       llvm::Value *fn = children.at(0)->codegen().value;
       if (!fn)
