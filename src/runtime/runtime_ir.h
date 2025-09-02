@@ -2,12 +2,23 @@
 #define RUNTIME_IR_H
 #include <llvm/IR/Function.h>
 
+static inline llvm::PointerType *getInt8PtrTy(llvm::LLVMContext &Context,
+                                              unsigned AddressSpace = 0) {
+  return llvm::PointerType::get(llvm::Type::getInt8Ty(Context), AddressSpace);
+}
+
 struct RuntimeIR {
-  llvm::Function *nil_handle = nullptr;
-  llvm::Function *bool_handle = nullptr;
-  llvm::Function *number_handle = nullptr;
-  llvm::Function *string_handle = nullptr;
-  llvm::Function *symbol_handle = nullptr;
+  llvm::Function *box_nil = nullptr;
+  llvm::Function *box_bool = nullptr;
+  llvm::Function *box_number = nullptr;
+  llvm::Function *box_string = nullptr;
+  llvm::Function *box_symbol = nullptr;
+
+  llvm::Function *unbox_bool = nullptr;
+  llvm::Function *unbox_number = nullptr;
+  llvm::Function *unbox_string = nullptr;
+  llvm::Function *unbox_symbol = nullptr;
+
   llvm::Function *cons = nullptr;
   llvm::Function *car = nullptr;
   llvm::Function *cdr = nullptr;
@@ -17,6 +28,7 @@ struct RuntimeIR {
   llvm::Function *get_sub = nullptr;
   llvm::Function *get_mul = nullptr;
   llvm::Function *get_div = nullptr;
+
   llvm::Function *print_value = nullptr; // void(Value*)
 
   llvm::Function *gc_root_push = nullptr;

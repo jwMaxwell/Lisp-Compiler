@@ -5,6 +5,7 @@
 #include "../parser/tokenizer.h"
 #include "../runtime/runtime_ir.h"
 #include "Literal.h"
+#include "codegen_result.h"
 #include <iostream>
 #include <llvm/IR/Value.h>
 
@@ -19,20 +20,27 @@ public:
     std::cout << indentation << "Identifier_Literal: " << value << std::endl;
   }
 
-  llvm::Value *codegen() override {
+  CodegenResult codegen() override {
     log_debug("Identifier_Literal->codegen()");
-    if (value == "print")
-      return runtime_ir.print_value;
-    else if (value == "cons")
-      return runtime_ir.cons;
-    else if (value == "car")
-      return runtime_ir.car;
-    else if (value == "cdr")
-      return runtime_ir.cdr;
-    else if (value == "atom?")
-      return runtime_ir.is_atom;
-    else if (value == "eq?")
-      return runtime_ir.eq;
+
+    llvm::Value *res = nullptr;
+    if (value == "print") {
+      res = runtime_ir.print_value;
+    } else if (value == "cons") {
+      res = runtime_ir.cons;
+    } else if (value == "car") {
+      res = runtime_ir.car;
+    } else if (value == "cdr") {
+      res = runtime_ir.cdr;
+    } else if (value == "atom?") {
+      res = runtime_ir.is_atom;
+    } else if (value == "eq?") {
+      res = runtime_ir.eq;
+    }
+
+    if (res != nullptr) {
+      return {res, res->getType(), false};
+    }
 
     std::string error = "identifier does not map to any given function: ";
     error += value;

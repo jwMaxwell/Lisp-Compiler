@@ -4,6 +4,7 @@
 #include "../llvm/llvm_lisp.h"
 #include "../runtime/runtime_ir.h"
 #include "Node.h"
+#include "codegen_result.h"
 #include "node_fwd.h"
 #include <iostream>
 #include <llvm/IR/IRBuilder.h>
@@ -21,7 +22,7 @@ public:
     }
   }
 
-  llvm::Value *codegen() override {
+  CodegenResult codegen() override {
     log_debug("Expression_Container->codegen()");
 
     auto *return_type = llvm::Type::getInt32Ty(the_context);
@@ -32,17 +33,17 @@ public:
     auto *block = llvm::BasicBlock::Create(the_context, "entry", function);
     the_builder.SetInsertPoint(block);
 
-    llvm::Value *lastValue = nullptr;
+    CodegenResult lastValue = nullptr;
     for (const auto &expr : children) {
       lastValue = expr->codegen();
-      if (!lastValue) {
+      if (!lastValue.value) {
         return log_error_v(
             "Failed to generate code for an expression in the sequence");
       }
       the_builder.CreateCall(runtime_ir.gc_collect_fn, {});
     }
-    the_builder.CreateRet(lastValue);
-    return function;
+    the_builder.CreateRet(lastValue.value);
+    return {function, function->getType(), true};
   }
 };
 

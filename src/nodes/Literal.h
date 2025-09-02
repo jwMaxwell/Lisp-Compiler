@@ -4,6 +4,7 @@
 #include "../llvm/llvm_lisp.h"
 #include "../parser/tokenizer.h"
 #include "Node.h"
+#include "codegen_result.h"
 #include <iostream>
 #include <llvm/IR/Value.h>
 
@@ -39,7 +40,7 @@ public:
               << std::endl;
   }
 
-  llvm::Value *codegen() override {
+  CodegenResult codegen() override {
     log_debug("Literal->codegen()");
     return nullptr;
   }

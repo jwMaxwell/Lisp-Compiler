@@ -3,6 +3,7 @@
 
 #include "../runtime/runtime_ir.h"
 #include "Literal.h"
+#include "codegen_result.h"
 #include <iostream>
 #include <llvm/IR/Value.h>
 
@@ -17,13 +18,22 @@ public:
     std::cout << indentation << "Numeric_Literal: " << value << std::endl;
   }
 
-  llvm::Value *codegen() override {
+  /* llvm::Value *codegen() override { */
+  /*   log_debug("Numeric_Literal->codegen()"); */
+  /*   print(1); */
+
+  /*   auto val = llvm::ConstantFP::get(llvm::Type::getDoubleTy(the_context), */
+  /*                                    std::stod(value)); */
+  /*   return val; */
+  /* } */
+
+  CodegenResult codegen() override {
     log_debug("Numeric_Literal->codegen()");
     print(1);
 
     auto val = llvm::ConstantFP::get(llvm::Type::getDoubleTy(the_context),
                                      std::stod(value));
-    return the_builder.CreateCall(runtime_ir.number_handle, {val}, "numobj");
+    return {val, llvm::Type::getDoubleTy(the_context), false};
   }
 };
 

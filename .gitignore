@@ -3,3 +3,6 @@
 *.lisp
 \#*
 .\#*
+a.out
+target.*
+driver

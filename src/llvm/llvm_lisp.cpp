@@ -13,14 +13,14 @@ void log_error(std::string error) {
     std::cerr << "Error: " << error << std::endl;
 }
 
-llvm::Value *log_error_v(const char *str) {
+CodegenResult log_error_v(const char *str) {
     log_error(str);
-    return nullptr;
+    return {nullptr, nullptr, true};
 }
 
-llvm::Function *log_error_f(const char *str) {
+CodegenResult log_error_f(const char *str) {
     log_error(str);
-    return nullptr;
+    return {nullptr, nullptr, true};
 }
 
 void init_llvm() {

@@ -1,13 +1,14 @@
 #ifndef LLVM_LISP_H
 #define LLVM_LISP_H
 
-#include <llvm/IR/LLVMContext.h>
-#include <llvm/IR/IRBuilder.h>
-#include <llvm/IR/Module.h>
-#include <memory>
-#include <map>
-#include <string>
+#include "../nodes/codegen_result.h"
 #include <iostream>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <map>
+#include <memory>
+#include <string>
 
 // This is an object that owns LLVM core data structures
 extern llvm::LLVMContext the_context;
@@ -25,9 +26,9 @@ extern void log_debug(std::string stmt);
 
 extern void log_error(std::string error);
 
-extern llvm::Value* log_error_v(const char* str);
+extern CodegenResult log_error_v(const char *str);
 
-extern llvm::Function* log_error_f(const char* str);
+extern CodegenResult log_error_f(const char *str);
 
 void init_llvm();
 

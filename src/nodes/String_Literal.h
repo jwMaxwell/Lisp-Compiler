@@ -3,6 +3,7 @@
 
 #include "../runtime/runtime_ir.h"
 #include "Literal.h"
+#include "codegen_result.h"
 #include <iostream>
 #include <llvm/IR/Value.h>
 
@@ -18,12 +19,13 @@ public:
               << std::endl;
   }
 
-  llvm::Value *codegen() override {
+  CodegenResult codegen() override {
     log_debug("String_Literal->codegen()");
 
     auto stringPtr = the_builder.CreateGlobalString(value);
-    return the_builder.CreateCall(runtime_ir.string_handle, {stringPtr},
-                                  "strobj");
+    auto boxed_val =
+        the_builder.CreateCall(runtime_ir.box_string, {stringPtr}, "strobj");
+    return {boxed_val, boxed_val->getType(), true};
   }
 };
 

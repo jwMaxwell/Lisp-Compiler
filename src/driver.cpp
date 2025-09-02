@@ -1,4 +1,5 @@
 #include "nodes/Expression_Container.h"
+#include "nodes/codegen_result.h"
 #include "parser/parser.h"
 #include "parser/tokenizer.h"
 #include "runtime/runtime_ir.h"
@@ -63,9 +64,9 @@ int main(int argc, char **argv) {
   // }
   // llvm::Linker::linkModules(*the_module, std::move(runtimeModule));
 
-  llvm::Value *ir_code =
+  CodegenResult ir_code =
       std::dynamic_pointer_cast<Expression_Container>(ast)->codegen();
-  ir_code->getName(); // gets rid of the warning
+  ir_code.value->getName(); // gets rid of the warning
   the_module->print(llvm::errs(), nullptr);
 
   // Generate LLVM IR file

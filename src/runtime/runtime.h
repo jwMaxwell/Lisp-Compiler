@@ -11,12 +11,23 @@ typedef struct Cons Cons;
 
 enum Tag { T_NIL = 0, T_NUMBER, T_STRING, T_SYMBOL, T_CONS, T_BOOL };
 
+/* struct Value { */
+/*   int32_t tag;     // type */
+/*   void *payload;   // value */
+/*   uint8_t marked;  // gc mark bit */
+/*   uint8_t _pad[3]; // TODO: Figure out what this is for */
+/*   Value *gc_next;  // intrusive LL for gc sweeps */
+/* }; */
+
 struct Value {
-  int32_t tag;     // type
-  void *payload;   // value
-  uint8_t marked;  // gc mark bit
-  uint8_t _pad[3]; // TODO: Figure out what this is for
-  Value *gc_next;  // intrusive LL for gc sweeps
+  int32_t tag; // type
+  union {
+    bool b;
+    double d;
+    void *ptr;
+  } payload;
+  uint8_t marked; // gc mark bit
+  Value *gc_next; // intrusive LL for gc sweeps
 };
 
 struct Cons {
@@ -24,11 +35,17 @@ struct Cons {
   Value *cdr;
 };
 
-Value *make_nil();
-Value *make_bool(int b);
-Value *make_number(double v);
-Value *make_string(const char *s);
-Value *make_symbol(const char *s);
+Value *box_nil();
+Value *box_bool(int b);
+Value *box_number(double v);
+Value *box_string(const char *s);
+Value *box_symbol(const char *s);
+
+bool unbox_bool(Value *v);
+double unbox_number(Value *v);
+char *unbox_string(Value *v);
+char *unbox_symbol(Value *v);
+
 Cons *make_cons(Value *car, Value *cdr);
 Value *cons(Value *car, Value *cdr); // returns Value* wrapper for Cons
 Value *car(Value *v);
