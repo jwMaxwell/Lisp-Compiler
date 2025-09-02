@@ -38,7 +38,7 @@ static void gc_mark(Value *v) {
   v->marked = 1;
 
   if (v->tag == T_CONS) {
-    Cons *c = (Cons *)v->payload.ptr;
+    Cons *c = (Cons *)v->payload.cons;
     gc_mark(c->car);
     gc_mark(c->cdr);
   }
@@ -65,18 +65,20 @@ static void gc_free_value(Value *v) {
     return;
   switch (v->tag) {
   case T_CONS:
-    std::free((Cons *)v->payload.ptr);
+    std::free((Cons *)v->payload.cons);
     break;
   case T_STRING:
-  case T_SYMBOL:
-    std::free((char *)v->payload.ptr);
+    std::free((char *)v->payload.str);
     break;
-  // case T_NUMBER:
-  //   std::free(v->payload.d);
-  //   break;
-  // case T_BOOL:
-  //   std::free(v->payload.b);
-  //   break;
+  case T_SYMBOL:
+    std::free((char *)v->payload.sym);
+    break;
+  case T_NUMBER:
+    //   std::free(*(double*)v->payload.num);
+    break;
+  case T_BOOL:
+    //   std::free(*(int*)v->payload.num);
+    break;
   case T_NIL:
     break;
   }
@@ -107,15 +109,6 @@ void gc_collect() {
 }
 
 // LISP API
-
-// Value *mkval(int tag, void *payload) {
-//   Value *v = (Value *)std::malloc(sizeof(Value));
-//   v->tag = tag;
-//   v->payload = payload;
-//   gc_register(v);
-//   return v;
-// }
-
 Value *box_nil() {
   static Value *NIL = nullptr;
   if (!NIL) {
@@ -135,7 +128,7 @@ Value *box_bool(int b) {
 
   Value *v = (Value *)std::malloc(sizeof(Value));
   v->tag = T_BOOL;
-  v->payload.b = *p;
+  v->payload.boolean = *p;
   gc_register(v);
 
   return v;
@@ -147,7 +140,7 @@ Value *box_number(double x) {
 
   Value *v = (Value *)std::malloc(sizeof(Value));
   v->tag = T_NUMBER;
-  v->payload.d = *p;
+  v->payload.num = *p;
   gc_register(v);
 
   return v;
@@ -159,7 +152,7 @@ Value *box_string(const char *s) {
 
   Value *v = (Value *)std::malloc(sizeof(Value));
   v->tag = T_STRING;
-  v->payload.ptr = copy;
+  v->payload.str = copy;
   gc_register(v);
 
   return v;
@@ -175,17 +168,17 @@ Value *box_symbol(const char *s) {
 
   Value *v = (Value *)std::malloc(sizeof(Value));
   v->tag = T_SYMBOL;
-  v->payload.ptr = copy;
+  v->payload.sym = copy;
   gc_register(v);
 
   symbol_table.emplace(key, v);
   return v;
 }
 
-bool unbox_bool(Value *v) { return v->payload.b; }
-double unbox_number(Value *v) { return v->payload.d; }
-char *unbox_string(Value *v) { return (char *)v->payload.ptr; }
-char *unbox_symbol(Value *v) { return (char *)v->payload.ptr; }
+bool unbox_bool(Value *v) { return v->payload.boolean; }
+double unbox_number(Value *v) { return v->payload.num; }
+char *unbox_string(Value *v) { return (char *)v->payload.str; }
+char *unbox_symbol(Value *v) { return (char *)v->payload.sym; }
 
 Cons *make_cons(Value *carv, Value *cdrv) {
   Cons *c = (Cons *)std::malloc(sizeof(Cons));
@@ -197,7 +190,7 @@ Cons *make_cons(Value *carv, Value *cdrv) {
 Value *cons(Value *carv, Value *cdrv) {
   Value *v = (Value *)std::malloc(sizeof(Value));
   v->tag = T_CONS;
-  v->payload.ptr = make_cons(carv, cdrv);
+  v->payload.cons = make_cons(carv, cdrv);
   gc_register(v);
 
   return v;
@@ -206,14 +199,14 @@ Value *cons(Value *carv, Value *cdrv) {
 Value *car(Value *v) {
   if (!v || v->tag != T_CONS)
     return box_nil();
-  Cons *c = (Cons *)v->payload.ptr;
+  Cons *c = (Cons *)v->payload.cons;
   return c->car;
 }
 
 Value *cdr(Value *v) {
   if (!v || v->tag != T_CONS)
     return box_nil();
-  Cons *c = (Cons *)v->payload.ptr;
+  Cons *c = (Cons *)v->payload.cons;
   return c->cdr;
 }
 
@@ -237,13 +230,15 @@ Value *eq(Value *a, Value *b) {
   case T_NIL:
     return box_bool(1);
   case T_NUMBER:
-    return box_bool(a->payload.d == b->payload.d);
+    return box_bool(a->payload.num == b->payload.num);
   case T_STRING:
+    return box_bool(std::string((char *)a->payload.str) ==
+                    std::string((char *)b->payload.str));
   case T_SYMBOL:
-    return box_bool(std::string((char *)a->payload.ptr) ==
-                    std::string((char *)b->payload.ptr));
+    return box_bool(std::string((char *)a->payload.sym) ==
+                    std::string((char *)b->payload.sym));
   case T_BOOL:
-    return box_bool(a->payload.b == b->payload.b);
+    return box_bool(a->payload.boolean == b->payload.boolean);
   }
   return box_bool(0);
 }
@@ -291,12 +286,12 @@ void print_value(Value *v) {
     break;
   case T_CONS: {
     printf("(");
-    Cons *c = (Cons *)v->payload.ptr;
+    Cons *c = (Cons *)v->payload.cons;
     print_value(c->car);
     Value *tail = c->cdr;
     while (tail && tail->tag == T_CONS) {
       printf(" ");
-      Cons *cc = (Cons *)tail->payload.ptr;
+      Cons *cc = (Cons *)tail->payload.cons;
       print_value(cc->car);
       tail = cc->cdr;
     }

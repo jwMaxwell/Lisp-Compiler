@@ -11,20 +11,15 @@ typedef struct Cons Cons;
 
 enum Tag { T_NIL = 0, T_NUMBER, T_STRING, T_SYMBOL, T_CONS, T_BOOL };
 
-/* struct Value { */
-/*   int32_t tag;     // type */
-/*   void *payload;   // value */
-/*   uint8_t marked;  // gc mark bit */
-/*   uint8_t _pad[3]; // TODO: Figure out what this is for */
-/*   Value *gc_next;  // intrusive LL for gc sweeps */
-/* }; */
-
 struct Value {
   int32_t tag; // type
   union {
-    bool b;
-    double d;
-    void *ptr;
+    bool boolean;
+    double num;
+    void *ptr; // for NIL values
+    char *sym;
+    char *str;
+    Cons *cons;
   } payload;
   uint8_t marked; // gc mark bit
   Value *gc_next; // intrusive LL for gc sweeps
