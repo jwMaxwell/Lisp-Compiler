@@ -3,8 +3,8 @@
 
 #include "../llvm/llvm_lisp.h"
 #include "../runtime/runtime_ir.h"
-#include "Literal.h"
 #include "codegen_result.h"
+#include "literals/Literal.h"
 #include "node_fwd.h"
 #include <llvm/IR/Value.h>
 #include <vector>

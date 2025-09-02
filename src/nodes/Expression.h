@@ -3,11 +3,11 @@
 
 #include "../llvm/llvm_lisp.h"
 #include "../runtime/runtime_ir.h"
-#include "Identifier_Literal.h"
-#include "Literal.h"
+#include "Identifier.h"
 #include "Node.h"
 #include "codegen_result.h"
 #include "functions.h"
+#include "literals/Literal.h"
 #include "node_fwd.h"
 #include <algorithm>
 #include <iostream>
@@ -46,7 +46,7 @@ public:
       llvm::Value *res =
           the_builder.CreateCall(runtime_ir.box_string, {stringPtr}, "strobj");
       return {res, res->getType(), true};
-    } else if (n->get_class_name() == "identifier_literal") {
+    } else if (n->get_class_name() == "identifier") {
       std::shared_ptr<Literal> temp_node =
           std::dynamic_pointer_cast<Literal>(n);
       auto symbolPtr = the_builder.CreateGlobalString(temp_node->get_value());
@@ -77,8 +77,7 @@ public:
     }
 
     std::string fn_name =
-        std::dynamic_pointer_cast<Identifier_Literal>(children.at(0))
-            ->get_value();
+        std::dynamic_pointer_cast<Identifier>(children.at(0))->get_value();
     if (fn_name == "quote") {
       return children.size() < 2 ? log_error_v("quote cannot be empty")
                                  : quote_codegen(children.at(1));

@@ -18,14 +18,14 @@ node_ptr build_AST(std::vector<token_t> &tokens, node_ptr ast) {
     // omg LITERALly parsing
     node_ptr newLiteral;
     if (token.type == "number")
-      newLiteral = std::make_shared<Numeric_Literal>(token);
+      newLiteral = std::make_shared<Numeric>(token);
     else if (token.type == "string")
-      newLiteral = std::make_shared<String_Literal>(token);
+      newLiteral = std::make_shared<String>(token);
     else if (token.type == "identifier") {
       if (token.value == "true" || token.value == "false")
-        newLiteral = std::make_shared<Boolean_Literal>(token);
+        newLiteral = std::make_shared<Boolean>(token);
       else
-        newLiteral = std::make_shared<Identifier_Literal>(token);
+        newLiteral = std::make_shared<Identifier>(token);
     }
 
     std::dynamic_pointer_cast<Expression>(ast)->children.push_back(newLiteral);
@@ -42,7 +42,7 @@ node_ptr parse_quote(node_ptr ast) {
       node_ptr &child = parent->children[i];
       if (child->get_class_name() == "expression") {
         parse_quote(child);
-      } else if (child->get_class_name() == "identifier_literal") {
+      } else if (child->get_class_name() == "identifier") {
         std::shared_ptr<Literal> literalChild =
             std::dynamic_pointer_cast<Literal>(child);
         if (literalChild->get_value() == "'" &&

@@ -13,7 +13,7 @@ CXXFLAGS = -std=c++20 -Wall $(LLVM_CXXFLAGS)
 EXEC = driver
 
 # Source files
-SRCS = src/driver.cpp \
+SRCS = src/driver/driver.cpp \
 src/parser/tokenizer.cpp \
 src/parser/parser.cpp \
 src/llvm/llvm_lisp.cpp \
@@ -27,10 +27,10 @@ OBJS = $(SRCS:.cpp=.o)
 HDRS = src/parser/tokenizer.h \
 src/nodes/node_fwd.h \
 src/nodes/Node.h \
-src/nodes/Literal.h \
-src/nodes/String_Literal.h \
-src/nodes/Numeric_Literal.h \
-src/nodes/Boolean_Literal.h \
+src/nodes/literals/Literal.h \
+src/nodes/literals/String.h \
+src/nodes/literals/Numeric.h \
+src/nodes/literals/Boolean.h \
 src/nodes/Expression_Container.h \
 src/parser/parser.h \
 src/llvm/llvm_lisp.h \

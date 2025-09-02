@@ -1,19 +1,17 @@
-#ifndef BOOLEAN_LITERAL_H_
-#define BOOLEAN_LITERAL_H_
+#ifndef BOOLEAN_H_
+#define BOOLEAN_H_
 
-#include "../llvm/llvm_lisp.h"
-#include "../parser/tokenizer.h"
-#include "../runtime/runtime_ir.h"
+#include "../../llvm/llvm_lisp.h"
+#include "../../parser/tokenizer.h"
+#include "../../runtime/runtime_ir.h"
+#include "../codegen_result.h"
 #include "Literal.h"
-#include "codegen_result.h"
 #include <iostream>
 #include <llvm/IR/Value.h>
 
-class Boolean_Literal : public Literal {
+class Boolean : public Literal {
 public:
-  Boolean_Literal(const token_t &tok) : Literal(tok) {
-    class_name = "boolen_literal";
-  }
+  Boolean(const token_t &tok) : Literal(tok) { class_name = "boolen_literal"; }
 
   void print(int indent = 0) const override {
     std::string indentation(indent, ' ');
@@ -36,7 +34,6 @@ public:
     print(1);
 
     int temp = value == "true" ? 1 : 0;
-    log_debug("Boolean_Literal->codegen()");
     auto val =
         llvm::ConstantInt::get(llvm::Type::getInt32Ty(the_context), temp);
     auto boxed_val =
@@ -45,4 +42,4 @@ public:
   }
 };
 
-#endif // BOOLEAN_LITERAL_H_
+#endif // BOOLEAN_H_

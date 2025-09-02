@@ -1,10 +1,10 @@
 #ifndef LITERAL_H_
 #define LITERAL_H_
 
-#include "../llvm/llvm_lisp.h"
-#include "../parser/tokenizer.h"
-#include "Node.h"
-#include "codegen_result.h"
+#include "../../llvm/llvm_lisp.h"
+#include "../../parser/tokenizer.h"
+#include "../Node.h"
+#include "../codegen_result.h"
 #include <iostream>
 #include <llvm/IR/Value.h>
 

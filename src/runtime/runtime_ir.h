@@ -2,9 +2,10 @@
 #define RUNTIME_IR_H
 #include <llvm/IR/Function.h>
 
-static inline llvm::PointerType *getInt8PtrTy(llvm::LLVMContext &Context,
+static inline llvm::PointerType *getInt8PtrTy(llvm::LLVMContext &the_context,
                                               unsigned AddressSpace = 0) {
-  return llvm::PointerType::get(llvm::Type::getInt8Ty(Context), AddressSpace);
+  return llvm::PointerType::get(llvm::Type::getInt8Ty(the_context),
+                                AddressSpace);
 }
 
 struct RuntimeIR {
@@ -37,6 +38,6 @@ struct RuntimeIR {
 };
 
 extern RuntimeIR runtime_ir;
-void init_runtime_ir(llvm::Module *M, llvm::LLVMContext &C);
+void init_runtime_ir(llvm::Module *the_module, llvm::LLVMContext &the_context);
 
 #endif
